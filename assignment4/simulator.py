@@ -69,25 +69,29 @@ def RR_scheduling(process_list, time_quantum):
     q = deque()
     q.append(process_list[ptr])
     # round robin
-    while len(q) > 0:
-        current_process = q.popleft()
-        schedule.append((current_time, current_process.id))
-
-        if not current_process.remaining_time:
-            current_process.remaining_time = current_process.burst_time
-        process_time = min(time_quantum, current_process.remaining_time)
-        current_time += process_time
-        current_process.remaining_time -= process_time
-        if current_process.remaining_time > 0:
-            q.append(current_process)
-        else:
-            waiting_time += (current_time - current_process.arrive_time - current_process.burst_time)
-
-        while process_list[ptr].arrive_time <= current_time:
+    while ptr < len(process_list):
+        if len(q) == 0 and ptr < len(process_list) and current_time < process_list[ptr].arrive_time:
+            current_time = process_list[ptr].arrive_time
+            # print("update current time", current_time)
+        while ptr < len(process_list) and process_list[ptr].arrive_time <= current_time:
             if ptr > 0:
-                print("process", ptr, process_list[ptr].arrive_time)
+                # print("add process", process_list[ptr].arrive_time, process_list[ptr].burst_time)
                 q.append(process_list[ptr])
             ptr += 1
+        while len(q) > 0 and ptr < len(process_list) and current_time < process_list[ptr].arrive_time:
+            current_process = q.popleft()
+            # print("run process", current_process.arrive_time)
+            schedule.append((current_time, current_process.id))
+
+            if not current_process.remaining_time:
+                current_process.remaining_time = current_process.burst_time
+            process_time = min(time_quantum, current_process.remaining_time)
+            current_time += process_time
+            current_process.remaining_time -= process_time
+            if current_process.remaining_time > 0:
+                q.append(current_process)
+            else:
+                waiting_time += (current_time - current_process.arrive_time - current_process.burst_time)
 
     average_waiting_time = waiting_time / float(len(process_list))
     return schedule, average_waiting_time
@@ -202,7 +206,7 @@ def main(argv):
     SRTF_schedule, SRTF_avg_waiting_time = SRTF_scheduling(process_list)
     write_output('SRTF.txt', SRTF_schedule, SRTF_avg_waiting_time)
     print("simulating SJF ----")
-    SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=0.9)
+    SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=0.5)
     write_output('SJF.txt', SJF_schedule, SJF_avg_waiting_time)
     print("DONE")
 
