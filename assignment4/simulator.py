@@ -136,19 +136,30 @@ def SJF_scheduling(process_list, alpha):
     h = []
     ptr = 0
     while ptr < len(process_list):
-        while process_list[ptr].arrive_time < current_time:
+        # print("current time", current_time)
+        if len(h) == 0 and ptr < len(process_list) and current_time < process_list[ptr].arrive_time:
+            current_time = process_list[ptr].arrive_time
+        while ptr < len(process_list) and process_list[ptr].arrive_time <= current_time:
             process = process_list[ptr]
+            # print("process for scheduling", process.arrive_time)
             if process.id in predict:
                 process.predict_time = round(alpha * process.burst_time + (1 - alpha) * predict[process.id])
             else:
                 process.predict_time = 5  # initial guess burst time = 5 for all processes
             predict[process.id] = process.predict_time
+            # print("add process", process.arrive_time)
             heappush(h, (process.predict_time, process))
             ptr += 1
 
         current_process = heappop(h)[1]
-        while current_time < current_process.arrive_time:
-            current_time += 1
+        # print("process to run", current_process.arrive_time, current_process.burst_time, current_process.predict_time)
+        schedule.append((current_time, current_process.id))
+        current_time += current_process.burst_time
+        waiting_time += (current_time - current_process.arrive_time - current_process.burst_time)
+
+    while len(h) > 0:
+        current_process = heappop(h)[1]
+        # print("process to run", current_process.arrive_time, current_process.burst_time, current_process.predict_time)
         schedule.append((current_time, current_process.id))
         current_time += current_process.burst_time
         waiting_time += (current_time - current_process.arrive_time - current_process.burst_time)
@@ -191,7 +202,7 @@ def main(argv):
     SRTF_schedule, SRTF_avg_waiting_time = SRTF_scheduling(process_list)
     write_output('SRTF.txt', SRTF_schedule, SRTF_avg_waiting_time)
     print("simulating SJF ----")
-    SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=0.5)
+    SJF_schedule, SJF_avg_waiting_time = SJF_scheduling(process_list, alpha=0.9)
     write_output('SJF.txt', SJF_schedule, SJF_avg_waiting_time)
     print("DONE")
 
