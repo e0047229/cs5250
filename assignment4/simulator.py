@@ -106,22 +106,22 @@ def SRTF_scheduling(process_list):
         # print("add process", process.arrive_time)
         process.remaining_time = process.burst_time
         heappush(h, (process.remaining_time, process))
+
         srt_process = heappop(h)[1]
+        # print("run process", srt_process.arrive_time)
+        schedule.append((current_time, srt_process.id))
         while srt_process.arrive_time > current_time:
             current_time += 1
         srt_process.remaining_time -= 1
-        # print("current time", current_time, "arrive time", srt_process.arrive_time)
         current_time += 1
-        # print(process.id, "burst_time", process.burst_time, "remaining_time", process.remaining_time)
         if srt_process.remaining_time > 0:
             heappush(h, (srt_process.remaining_time, srt_process))
         else:
             waiting_time += (current_time - srt_process.arrive_time - srt_process.burst_time)
-            # print("waiting time", waiting_time, "current time", current_time,
-            #       "arrive time", srt_process.arrive_time, "burst time", srt_process.burst_time)
 
     while len(h) > 0:
         srt_process = heappop(h)[1]
+        # print("run process", srt_process.arrive_time)
         schedule.append((current_time, srt_process.id))
         current_time += srt_process.remaining_time
         waiting_time += (current_time - srt_process.arrive_time - srt_process.burst_time)
